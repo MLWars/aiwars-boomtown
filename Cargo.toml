@@ -1,8 +1,8 @@
 [package]
 name = "aiwars-mcp-boomtown"
-edition.workspace = true
-version.workspace = true
-license.workspace = true
+version = "0.1.0"
+edition = "2021"
+license = "UNLICENSED"
 
 [lib]
 name = "aiwars_mcp_boomtown"
@@ -13,20 +13,37 @@ name = "aiwars-mcp-boomtown"
 path = "src/main.rs"
 
 [dependencies]
-# The game-agnostic referee CORE (Game trait + Match lifecycle) is reused as-is;
-# this crate only adds the Boomtown `Game` impl + its thin server wiring + view.
-aiwars-mcp-warden = { path = "../mcp-warden" }
-protocol = { path = "../../../protocol" }
-anyhow.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-tokio.workspace = true
-axum.workspace = true
-tower.workspace = true
+# The game-agnostic referee CORE (Game trait + Match lifecycle) and the shared
+# `protocol` types live in the PRIVATE AsafFisher/AIWars monorepo. They used to be
+# path deps (../mcp-warden, ../../../protocol); as a standalone repo we fetch them as
+# GIT deps instead. Cargo discovers the `aiwars-mcp-warden` workspace member
+# (engine/crates/mcp-warden) and the root `protocol` crate by walking the repo, so no
+# root Cargo.toml is required. The engine workspace's codex/tungstenite `[patch]` and
+# heavy deps do NOT propagate to us (patches apply only to the root crate being built),
+# so only the lean referee subgraph is resolved. CI/Docker fetch this via a token
+# (BuildKit secret `gh_token`, from the repo's AIWARS_DEP_TOKEN secret). For LOCAL dev
+# against an editable checkout, add a path override:
+#   [patch."https://github.com/AsafFisher/AIWars"] aiwars-mcp-warden = { path = "..." }
+aiwars-mcp-warden = { git = "https://github.com/AsafFisher/AIWars", package = "aiwars-mcp-warden", rev = "ad9327a98c4bc8d28e0e78602a9d64c14bce298b" }
+protocol = { git = "https://github.com/AsafFisher/AIWars", package = "protocol", rev = "ad9327a98c4bc8d28e0e78602a9d64c14bce298b" }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+axum = "0.7"
+tower = "0.5"
 tower-http = { version = "0.6", features = ["fs", "set-header", "timeout"] }
 sha2 = "0.11.0"
 hex = "0.4.3"
 schemars = "1.2.1"
-rmcp = { version = "1.7.0", features = ["server", "macros", "transport-streamable-http-server", "transport-streamable-http-server-session", "schemars", "tower"] }
+# Pin rmcp AND its proc-macro crate to 1.7.0 (the version aiwars-mcp-warden is built
+# against). With no committed Cargo.lock, cargo would otherwise float rmcp/rmcp-macros
+# to 1.8.x, whose generated code calls rmcp-1.7-absent APIs (`schema_for_input`) and
+# fails the build. Keep in lockstep with the warden library's rmcp version.
+rmcp = { version = "=1.7.0", features = ["server", "macros", "transport-streamable-http-server", "transport-streamable-http-server-session", "schemars", "tower"] }
+rmcp-macros = "=1.7.0"
+# aiwars-mcp-warden pulls `shakmaty` transitively with a caret ("0.30.0"); 0.30.1 needs
+# rustc 1.95 but the Docker builder is rust 1.94, so pin it to keep the resolution on 1.94.
+shakmaty = "=0.30.0"
