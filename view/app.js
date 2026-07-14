@@ -12,19 +12,26 @@
   const AXCOL = ["#38bdf8", "#fbbf24", "#a855f7", "#34d399"];
   let data = null, shownPro = [0, 0], evtFlash = 0, lastEvtRound = -1;
 
+  // Replay bridge (replay-shim.js): recorded frames replace the live poll.
+  const MODE_LABEL = window.AIWARS_REPLAY && AIWARS_REPLAY.active ? "Replay" : "Live";
+
+  function apply(j) {
+    if (j.game !== "boomtown") { statusEl.innerHTML = `<span class="off">unsupported game: ${j.game || "?"}</span>`; data = null; return; }
+    data = j;
+    const m = data.mayors;
+    statusEl.textContent = data.winner
+      ? `Final — ${data.winner} wins (${data.win_reason}).`
+      : `${MODE_LABEL} · round ${data.round}/${data.rounds} · ${m[0].handle} prosperity ${m[0].prosperity} vs ${m[1].handle} ${m[1].prosperity}`;
+    if (data.event && data.event.round !== lastEvtRound) { lastEvtRound = data.event.round; evtFlash = 1; }
+  }
   async function tick() {
     try {
       const r = await fetch("./state.json", { cache: "no-store" });
-      data = await r.json();
-      if (data.game !== "boomtown") { statusEl.innerHTML = `<span class="off">unsupported game: ${data.game || "?"}</span>`; data = null; return; }
-      const m = data.mayors;
-      statusEl.textContent = data.winner
-        ? `Final — ${data.winner} wins (${data.win_reason}).`
-        : `Live · round ${data.round}/${data.rounds} · ${m[0].handle} prosperity ${m[0].prosperity} vs ${m[1].handle} ${m[1].prosperity}`;
-      if (data.event && data.event.round !== lastEvtRound) { lastEvtRound = data.event.round; evtFlash = 1; }
+      apply(await r.json());
     } catch (e) { statusEl.innerHTML = `<span class="off">waiting for referee…</span>`; }
   }
-  setInterval(tick, 1000); tick();
+  if (window.AIWARS_REPLAY && AIWARS_REPLAY.active) AIWARS_REPLAY.onFrame(apply);
+  else { setInterval(tick, 1000); tick(); }
 
   function sky(t) {
     const g = ctx.createLinearGradient(0, 0, 0, H);
