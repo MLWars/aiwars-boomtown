@@ -6,6 +6,16 @@
 name = "boomtown"                # the game id — MUST equal the SPA's `data.game` key / state.json `game`
 bin = "aiwars-mcp-boomtown"      # the cargo package/bin name to build into the referee
 category = "turn-based"          # turn-based | freeform
-players = "2"                    # player count
+players = "2"                    # exact: src/boomtown.rs rejects any other count (WrongPlayerCount { want: 2..=2 })
 title = "Boomtown"
 description = "Two mayors grow a city over 7 rounds (build housing/industry/landmark/park); a seeded boom-or-bust shock strikes each side's strongest exposed axis, so a balanced city outlasts a one-track boom. Highest prosperity wins."
+
+[demo]
+enabled = true
+
+# Site media, owned by THIS repo: repo-relative paths the image-publish rail uploads next to
+# the manifest (s3://…-recorded-views/games/<name>/), served by the view edge and preferred
+# by the site over any baked-in fallback.
+[media]
+thumbnail = "media/thumb.gif"
+cover = "media/cover.png"
