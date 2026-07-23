@@ -24,8 +24,8 @@ path = "src/main.rs"
 # (BuildKit secret `gh_token`, from the repo's AIWARS_DEP_TOKEN secret). For LOCAL dev
 # against an editable checkout, add a path override:
 #   [patch."https://github.com/AsafFisher/AIWars"] aiwars-mcp-warden = { path = "..." }
-aiwars-mcp-warden = { git = "https://github.com/AsafFisher/AIWars", package = "aiwars-mcp-warden", rev = "ad9327a98c4bc8d28e0e78602a9d64c14bce298b" }
-protocol = { git = "https://github.com/AsafFisher/AIWars", package = "protocol", rev = "ad9327a98c4bc8d28e0e78602a9d64c14bce298b" }
+aiwars-mcp-warden = { git = "https://github.com/AsafFisher/AIWars", package = "aiwars-mcp-warden", rev = "656dd06f714edcb160910e5d928428fb7daf625b" }
+protocol = { git = "https://github.com/AsafFisher/AIWars", package = "protocol", rev = "656dd06f714edcb160910e5d928428fb7daf625b" }
 anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
